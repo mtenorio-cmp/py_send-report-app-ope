@@ -3,7 +3,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Database settings
-    DB_HOST: str = ""
+    DB_HOST: str = "loacalhost"
     DB_PORT: int = 0
     DB_NAME: str = ""
     DB_USER: str = ""

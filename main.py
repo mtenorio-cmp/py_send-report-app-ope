@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import uvicorn
-from routes import data
+from routes import promedio_tiempo_despacho_x_cond_pago, update_gr
 from config import settings  
 
 # Configuración de logging
@@ -29,7 +29,8 @@ app.add_middleware(
 )
 
 # Registrar rutas
-app.include_router(data.router)
+app.include_router(promedio_tiempo_despacho_x_cond_pago.router)
+app.include_router(update_gr.router)
 
 @app.get("/")
 async def root():
