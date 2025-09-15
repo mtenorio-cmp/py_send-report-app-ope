@@ -22,42 +22,53 @@ class GuiaService:
         """
         updated_count = 0
         errors = []
-        update_query = """
-            UPDATE documentos 
-            SET NumeroGR = %(guia_num)s, 
-                SerieGR = %(guia_serie)s, 
-                FechaEntregaGR = %(guia_date)s, 
-                AgenciaTransporte = %(guia_agencia)s 
-            WHERE 
-                NumeroFactura = %(fact_num)s AND 
-                SerieFactura = %(fact_serie)s
-        """
         try:
             with self.db_connection.get_cursor() as cursor:
-                for guia in requests:
+                for doc in requests:
                     try:
-                        params = {
-                           "guia_num": guia.guia_num,
-                           "guia_serie": guia.guia_serie,
-                           "guia_date": guia.guia_date,
-                           "guia_agencia": guia.guia_agencia,
-                           "fact_num": guia.fact_num,
-                           "fact_serie": guia.fact_serie,
-                        }
+                        set_clauses = []
+                        params = {}
+                        if doc.guia_num is not None:
+                            set_clauses.append("NumeroGR = %(guia_num)s")
+                            params["guia_num"] = doc.guia_num
+                        if doc.guia_serie is not None:
+                            set_clauses.append("SerieGR = %(guia_serie)s")
+                            params["guia_serie"] = doc.guia_serie
+                        if hasattr(doc, "guia_program_fecha") and doc.guia_program_fecha is not None:
+                            set_clauses.append("FechaEntregaGR = %(guia_program_fecha)s")
+                            params["guia_program_fecha"] = doc.guia_program_fecha
+                        if doc.guia_agencia is not None:
+                            set_clauses.append("AgenciaTransporte = %(guia_agencia)s")
+                            params["guia_agencia"] = doc.guia_agencia
+                        # Si no hay campos a actualizar, saltar
+                        if not set_clauses:
+                            continue
+                        params["fact_num"] = doc.fact_num
+                        params["fact_serie"] = doc.fact_serie
+                        update_query = f"""
+                            UPDATE documentos 
+                            SET {', '.join(set_clauses)}
+                            WHERE NumeroFactura = %(fact_num)s AND SerieFactura = %(fact_serie)s
+                        """
                         cursor.execute(update_query, params)
                         updated_count += 1
                     except Exception as e:
-                        error_msg = f"Error actualizando guía fact_num={guia.fact_num}, fact_serie={guia.fact_serie}: {e}"
+                        error_msg = f"Error actualizando guía fact_num={doc.fact_num}, fact_serie={doc.fact_serie}: {e}"
                         logger.error(error_msg)
                         errors.append(error_msg)
-            # Commit si no hay errores
-            if len(errors) == 0:
-                self.db_connection.connection.commit()
-            else:
-                self.db_connection.connection.rollback()
+                # Commit si no hay errores
+                if len(errors) == 0:
+                    self.db_connection.connection.commit()
+                else:
+                    self.db_connection.connection.rollback()
         except Exception as e:
             logger.error(f"Error en la transacción de actualización masiva: {e}")
             errors.append(f"Error en la transacción: {e}")
+        finally:
+            try:
+                self.db_connection.disconnect()
+            except Exception as e:
+                logger.error(f"Error cerrando la conexión a la base de datos: {e}")
         return {
             "success": len(errors) == 0,
             "data": errors,

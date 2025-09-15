@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional
 import pandas as pd
+import pymysql
 
 class IDatabaseConnection(ABC):
     """Interface para conexión a base de datos"""
+    
+    connection: pymysql.Connection
     
     @abstractmethod
     def connect(self) -> bool:

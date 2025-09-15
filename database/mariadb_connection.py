@@ -13,8 +13,7 @@ class MariaDBConnection(IDatabaseConnection):
     """Implementación concreta para conexión a MariaDB"""
 
     def __init__(self):
- 
-        self.connection = None
+        self.connection: pymysql.Connection = None
         self.connection_config = {
             "host": settings.DB_HOST or "127.0.0.1",
             "port": settings.DB_PORT or 3306,
@@ -65,7 +64,6 @@ class MariaDBConnection(IDatabaseConnection):
         """Ejecuta query y retorna resultados como lista de diccionarios"""
         try:
             with self.get_cursor() as cursor:
-          
                 cursor.execute(query, params or ())
                 results = cursor.fetchall()
                 logger.info(
@@ -81,7 +79,6 @@ class MariaDBConnection(IDatabaseConnection):
     ) -> pd.DataFrame:
         """Ejecuta query y retorna resultados como DataFrame de pandas"""
         try:
-            
             if not self.connection or not self.connection.open:
                 if not self.connect():
                     raise ConnectionError(
