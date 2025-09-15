@@ -3,7 +3,7 @@ from fastapi import APIRouter,  HTTPException
 import logging
 from models.guia_model import GuiaUpdateRequest
 from models.requests import  DataResponse
-from services.gruia_service import GuiaService
+from services.guia_service import GuiaService
 
 from database.mariadb_connection import MariaDBConnection
 
