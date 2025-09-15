@@ -5,6 +5,7 @@ from models.guia_model import GuiaUpdateRequest
 from models.requests import DataResponse, ProgradosHoyRequest
  
 from services.guia_service import GuiaService
+from datetime import datetime, date
 
 from database.mariadb_connection import MariaDBConnection
 from services.query_service import SafeQueryService
@@ -27,10 +28,10 @@ async def update_guia_many(
         db.connect()
 
         query_service = GuiaService(db)
-        updated_count = query_service.update_multiple_guias(requests=request)
-
+        updated_response = query_service.update_multiple_guias(requests=request)
+        print(updated_response)
         # send_message_to_user("6172679210", "¡Consulta realizada con éxito!")
-        return updated_count
+        return updated_response
     except Exception as e:
         logger.error(f"Error en date-range: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -46,6 +47,13 @@ async def programados_hoy(
 
         query_service = SafeQueryService(db)
         programados = query_service.get_programados_del_dia( request.date_programen)
+        if  programados.empty:
+            return DataResponse(
+                success=True,
+                data=None,
+                rows_count=0,
+                message="No hay datos para la fecha proporcionada.",
+            )
         data_analysis_service = DataAnalysisService()
         image_path = data_analysis_service.generar_reporte_imagen(
             df=programados, 
@@ -53,8 +61,13 @@ async def programados_hoy(
             date_programen=request.date_programen
             )
 
-        send_message_to_telegram(image_path)
-        # send_image_to_telegram(image_path, "¡Consulta realizada con éxito!")
+        # send_message_to_telegram(image_path)
+        date_value = request.date_programen
+        if isinstance(date_value, str):
+            date_obj = datetime.strptime(date_value, "%d/%m/%Y").date()
+        elif isinstance(date_value, date):
+            date_obj = date_value.strftime("%d/%m/%y")
+        send_image_to_telegram(image_path, f"Programacion de despacho del dia {date_obj}")
         return DataResponse(
             success=True,
             data=None,

@@ -94,13 +94,13 @@ class DataAnalysisService:
         fig, ax = plt.subplots(
             figsize=(14, len(df) * 0.35)
         )  # ancho mayor y alto dinámico
-        fig.suptitle(
-            f"Pogramacion de despacho del dia {date_programen}",
-            fontsize=14,
-            fontweight="bold",
-            color="#333333",
-            y=0.98,
-        )
+        # fig.suptitle(
+        #     f"Pogramacion de despacho del dia {date_programen}",
+        #     fontsize=14,
+        #     fontweight="bold",
+        #     color="#333333",
+        #     y=0.98,
+        # )
         ax.axis("off")  # quitar ejes
 
         # lista para armar tabla matplotlib

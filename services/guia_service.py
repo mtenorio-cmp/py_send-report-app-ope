@@ -22,6 +22,7 @@ class GuiaService:
         """
         updated_count = 0
         errors = []
+        avisos = []
         try:
             with self.db_connection.get_cursor() as cursor:
                 for doc in requests:
@@ -34,6 +35,9 @@ class GuiaService:
                         if doc.guia_serie is not None:
                             set_clauses.append("SerieGR = %(guia_serie)s")
                             params["guia_serie"] = doc.guia_serie
+                        if hasattr(doc, "guia_fecha") and doc.guia_fecha is not None:
+                            set_clauses.append("FechaEmisionGR = %(guia_fecha)s")
+                            params["guia_fecha"] = doc.guia_fecha
                         if hasattr(doc, "guia_program_fecha") and doc.guia_program_fecha is not None:
                             set_clauses.append("FechaEntregaGR = %(guia_program_fecha)s")
                             params["guia_program_fecha"] = doc.guia_program_fecha
@@ -51,9 +55,14 @@ class GuiaService:
                             WHERE NumeroFactura = %(fact_num)s AND SerieFactura = %(fact_serie)s
                         """
                         cursor.execute(update_query, params)
-                        updated_count += 1
+                        if cursor.rowcount == 0:
+                            aviso = f"No se encontro documento para {doc.fact_serie}-{doc.fact_num}. No se actualizo ninguna fila."
+                            logger.warning(aviso)
+                            avisos.append(aviso)
+                        else:
+                            updated_count += 1
                     except Exception as e:
-                        error_msg = f"Error actualizando guía fact_num={doc.fact_num}, fact_serie={doc.fact_serie}: {e}"
+                        error_msg = f"Error actualizando guia para la FT {doc.fact_serie}-{doc.fact_num}: {e}"
                         logger.error(error_msg)
                         errors.append(error_msg)
                 # Commit si no hay errores
@@ -69,9 +78,15 @@ class GuiaService:
                 self.db_connection.disconnect()
             except Exception as e:
                 logger.error(f"Error cerrando la conexión a la base de datos: {e}")
+        if len(errors) == 0 and len(avisos) > 0:
+            message = "Actualizacion masiva realizada parcialmente. Algunos documentos no se encontraron."
+        elif len(errors) == 0:
+            message = "Actualizacion masiva realizada con exito!"
+        else:
+            message = "Error en la actualizacion masiva."
         return {
-            "success": len(errors) == 0,
-            "data": errors,
-            "message": "",
+            "success": len(errors) == 0 and len(avisos) == 0,
+            "data": {"errores": errors, "avisos": avisos},
+            "message": message,
             "rows_count": updated_count,
         }
