@@ -67,7 +67,8 @@ async def programados_hoy(
             date_obj = datetime.strptime(date_value, "%d/%m/%Y").date()
         elif isinstance(date_value, date):
             date_obj = date_value.strftime("%d/%m/%y")
-        send_image_to_telegram(image_path, f"Programacion de despacho del dia {date_obj}")
+        send = send_image_to_telegram(image_path, f"Programacion de despacho del dia {date_obj}")
+        print(send)
         return DataResponse(
             success=True,
             data=None,
