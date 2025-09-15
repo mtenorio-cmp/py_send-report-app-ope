@@ -38,3 +38,5 @@ class DataResponse(BaseModel):
     message: Optional[str] = None
     rows_count: Optional[int] = None
     
+class ProgradosHoyRequest(BaseModel):
+    date_programen: date = Field(..., description="Fecha (YYYY-MM-DD)")
