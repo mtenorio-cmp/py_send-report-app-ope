@@ -4,6 +4,9 @@ import logging
 import uvicorn
 from routes import guia_route, promedio_tiempo_despacho_x_cond_pago
 from config import settings  
+from services.telegram_bot import TelegramBotService
+import asyncio
+from contextlib import asynccontextmanager
 
 # Configuración de logging
 logging.basicConfig(
@@ -12,11 +15,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Iniciar el bot de Telegram
+telegram_service = TelegramBotService(
+    token=settings.TELEGRAM_BOT_TOKEN,
+    admin_id=int(settings.TELEGRAM_ADMIN_ID),
+)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 🚀 Startup
+    bot_task = asyncio.create_task(telegram_service.run())
+    
+    logger.info("Bot de Telegram iniciado junto con la API")
+    yield
+    # 🛑 Shutdown
+    bot_task.cancel()
+    logger.warning("Bot detenido porque la API se cerró")
+
 # Inicialización de la aplicación
 app = FastAPI(
     title="API de Análisis de Datos",
     description="API para consultas y análisis de datos en MariaDB",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Middleware CORS
@@ -32,6 +52,7 @@ app.add_middleware(
 app.include_router(promedio_tiempo_despacho_x_cond_pago.router)
 app.include_router(guia_route.router)
 
+# Ruta raíz
 @app.get("/")
 async def root():
     return {

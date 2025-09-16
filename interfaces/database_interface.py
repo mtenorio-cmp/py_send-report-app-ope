@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from typing import List, Dict, Any, Optional
 import pandas as pd
 import pymysql
@@ -22,6 +23,10 @@ class IDatabaseConnection(ABC):
     
     @abstractmethod
     def execute_query_dataframe(self, query: str, params: Optional[Dict] = None) -> pd.DataFrame:
+        pass
+    
+    @abstractmethod
+    def get_cursor(self, query: str, params: Optional[Dict] = None) -> Generator[pymysql.cursors.DictCursor, Any, None]:
         pass
 
 class IAuthService(ABC):

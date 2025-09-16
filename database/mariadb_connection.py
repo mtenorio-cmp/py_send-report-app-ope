@@ -10,19 +10,28 @@ logger = logging.getLogger(__name__)
 
 
 class MariaDBConnection(IDatabaseConnection):
-    """Implementación concreta para conexión a MariaDB"""
+    """Implementación Singleton para conexión a MariaDB"""
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(MariaDBConnection, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
-        self.connection: pymysql.Connection = None
-        self.connection_config = {
-            "host": settings.DB_HOST or "127.0.0.1",
-            "port": settings.DB_PORT or 3306,
-            "database": settings.DB_NAME,
-            "user": settings.DB_USER,
-            "password": settings.DB_PASSWORD,
-            "charset": "utf8mb4",
-            "autocommit": True,
-        }
+        
+        if not hasattr(self, "connection"):
+            self.connection: Optional[pymysql.Connection] = None
+            self.connection_config = {
+                "host": settings.DB_HOST or "127.0.0.1",
+                "port": settings.DB_PORT or 3306,
+                "database": settings.DB_NAME,
+                "user": settings.DB_USER,
+                "password": settings.DB_PASSWORD,
+                "charset": "utf8mb4",
+                "autocommit": True,
+            }
 
     def connect(self) -> bool:
         """Establece conexión con MariaDB"""
