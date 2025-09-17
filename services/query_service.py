@@ -71,7 +71,7 @@ class SafeQueryService:
             LEFT JOIN vehiculos AS v
                 ON v.id = r.vehiculosId
             WHERE
-                DATE(d.FechaEntregaGR) BETWEEN %(start_date)s AND %(end_date)s 
+                DATE(d.createAt) BETWEEN %(start_date)s AND %(end_date)s 
                 AND d.Motivo IN ("VENTA", "VENTA TRANSITO", "TRASLADO E/ESTABLECIMIENTOS")
         """
         # AND rd.horaSalida IS NOT NULL

@@ -1,16 +1,17 @@
 import asyncio
 import logging
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
-from services.authorization_store_memory import InMemoryAuthorizationStore
+from interfaces.telegram_authorization_store import ITelegramAuthorizationStore
+from stores.telegram_authorization_sql_store import TelegramAuthorizationSqlStore
 from services.telegram_handlers import BotHandlers
 
 logger = logging.getLogger(__name__)
 
 class TelegramBotService:
-    def __init__(self, token: str, admin_id: int, auth_store=None):
+    def __init__(self, token: str, admin_id: int, auth_store: ITelegramAuthorizationStore = None):
         self.token = token
         self.admin_id = admin_id
-        self.auth_store = auth_store or InMemoryAuthorizationStore()
+        self.auth_store = auth_store
         self.handlers = BotHandlers(admin_id, self.auth_store)
 
     async def run(self):

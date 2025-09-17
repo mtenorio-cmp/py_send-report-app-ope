@@ -1,12 +1,12 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from interfaces.authorization_store import IAuthorizationStore
+from interfaces.telegram_authorization_store import ITelegramAuthorizationStore
 
 logger = logging.getLogger(__name__)
 
 class BotHandlers:
-    def __init__(self, admin_id: int, auth_store: IAuthorizationStore):
+    def __init__(self, admin_id: int, auth_store: ITelegramAuthorizationStore):
         self.admin_id = int(admin_id)
         self.auth_store = auth_store
 
@@ -36,7 +36,7 @@ class BotHandlers:
 
         if query.from_user.id == self.admin_id:
             if action == "accept":
-                self.auth_store.add_user(user_id)
+                self.auth_store.add_user(user_id, username=update.effective_user.first_name)
                 await query.edit_message_text(f"✅ Usuario {user_id} autorizado.")
                 await context.bot.send_message(chat_id=user_id, text="🎉 ¡Tu acceso ha sido aprobado!")
             elif action == "reject":
