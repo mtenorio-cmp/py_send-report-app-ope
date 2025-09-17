@@ -43,4 +43,5 @@ Thumbs.db
 *.zip
 *.tar.gz
 .env
+.mypy_cache
 __pycache__
