@@ -21,10 +21,12 @@ db = MariaDBConnection()
 
 # Iniciar el bot de Telegram
 auth_store = TelegramAuthorizationSqlStore(db)
+
 telegram_service = TelegramBotService(
     token=settings.TELEGRAM_BOT_TOKEN,
     admin_id=int(settings.TELEGRAM_ADMIN_ID),
-    auth_store=auth_store
+    auth_store=auth_store,
+    db_connection=db
 )
 
 @asynccontextmanager

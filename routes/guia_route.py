@@ -8,7 +8,7 @@ from services.guia_service import GuiaService
 from datetime import datetime, date
 
 from database.mariadb_connection import MariaDBConnection
-from services.query_service import SafeQueryService
+from services.documento_query_service import DocumentoQueryService
 from services.data_analysis_service import DataAnalysisService
 from utils.telegram_utils import send_image_to_telegram, send_message_to_telegram
 
@@ -37,44 +37,44 @@ async def update_guia_many(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/report/programados_del_dia")
-async def programados_hoy(
-    request: ProgradosHoyRequest,
-):
-    try:
-        db = MariaDBConnection()
-        db.connect()
+# @router.post("/report/programados_del_dia")
+# async def programados_hoy(
+#     request: ProgradosHoyRequest,
+# ):
+#     try:
+#         db = MariaDBConnection()
+#         db.connect()
 
-        query_service = SafeQueryService(db)
-        programados = query_service.get_programados_del_dia( request.date_programen)
-        if  programados.empty:
-            return DataResponse(
-                success=True,
-                data=None,
-                rows_count=0,
-                message="No hay datos para la fecha proporcionada.",
-            )
-        data_analysis_service = DataAnalysisService()
-        image_path = data_analysis_service.generar_reporte_imagen(
-            df=programados, 
-            ruta_salida="reporte_programados_hoy.png",
-            date_programen=request.date_programen
-            )
+#         query_service = DocumentoQueryService(db)
+#         programados = query_service.get_programados_del_dia( request.date_programen)
+#         if  programados.empty:
+#             return DataResponse(
+#                 success=True,
+#                 data=None,
+#                 rows_count=0,
+#                 message="No hay datos para la fecha proporcionada.",
+#             )
+#         data_analysis_service = DataAnalysisService()
+#         image_path = data_analysis_service.generar_reporte_imagen(
+#             df=programados, 
+#             ruta_salida="reporte_programados_hoy.png",
+#             date_programen=request.date_programen
+#             )
 
-        # send_message_to_telegram(image_path)
-        date_value = request.date_programen
-        if isinstance(date_value, str):
-            date_obj = datetime.strptime(date_value, "%d/%m/%Y").date()
-        elif isinstance(date_value, date):
-            date_obj = date_value.strftime("%d/%m/%y")
-        send = send_image_to_telegram(image_path, f"Programacion de despacho del dia {date_obj}")
-        print(send)
-        return DataResponse(
-            success=True,
-            data=None,
-            rows_count=len(programados),
-            message="Consulta realizada con éxito!",
-        )
-    except Exception as e:
-        logger.error(f"Error en date-range: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+#         # send_message_to_telegram(image_path)
+#         date_value = request.date_programen
+#         if isinstance(date_value, str):
+#             date_obj = datetime.strptime(date_value, "%d/%m/%Y").date()
+#         elif isinstance(date_value, date):
+#             date_obj = date_value.strftime("%d/%m/%y")
+#         send = send_image_to_telegram(image_path, f"Programacion de despacho del dia {date_obj}")
+#         print(send)
+#         return DataResponse(
+#             success=True,
+#             data=None,
+#             rows_count=len(programados),
+#             message="Consulta realizada con éxito!",
+#         )
+#     except Exception as e:
+#         logger.error(f"Error en date-range: {e}")
+#         raise HTTPException(status_code=500, detail=str(e))

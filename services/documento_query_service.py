@@ -8,7 +8,7 @@ from interfaces.database_interface import IDatabaseConnection
 logger = logging.getLogger(__name__)
 
 
-class SafeQueryService:
+class DocumentoQueryService:
     """Servicio para ejecutar consultas seguras predefinidas"""
 
     def __init__(self, db_connection: IDatabaseConnection):

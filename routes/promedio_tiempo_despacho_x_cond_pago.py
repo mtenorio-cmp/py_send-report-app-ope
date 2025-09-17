@@ -1,7 +1,7 @@
 from fastapi import APIRouter,  HTTPException
 import logging
 from models.requests import DateRangeRequest, DataResponse
-from services.query_service import SafeQueryService
+from services.documento_query_service import DocumentoQueryService
 from services.data_analysis_service import DataAnalysisService
 
 from database.mariadb_connection import MariaDBConnection
@@ -22,7 +22,7 @@ async def get_promedio_tiempo_despacho_x_cond_pago(
         db = MariaDBConnection()
         db.connect()
 
-        query_service = SafeQueryService(db)
+        query_service = DocumentoQueryService(db)
         data_analysis_service = DataAnalysisService()
 
         df_response = query_service.get_delivery_documents_by_date_range(

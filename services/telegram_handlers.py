@@ -1,14 +1,24 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from interfaces.database_interface import IDatabaseConnection
 from interfaces.telegram_authorization_store import ITelegramAuthorizationStore
+from services.data_analysis_service import DataAnalysisService
+from services.documento_query_service import DocumentoQueryService
+from datetime import date
+from telegram import InputFile
 
 logger = logging.getLogger(__name__)
 
 class BotHandlers:
-    def __init__(self, admin_id: int, auth_store: ITelegramAuthorizationStore):
+    def __init__(self, 
+                 admin_id: int, 
+                 auth_store: ITelegramAuthorizationStore,
+                 db_connection: IDatabaseConnection,
+                 ):
         self.admin_id = int(admin_id)
         self.auth_store = auth_store
+        self.db_connection = db_connection
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
@@ -42,3 +52,33 @@ class BotHandlers:
             elif action == "reject":
                 await query.edit_message_text(f"❌ Usuario {user_id} rechazado.")
                 await context.bot.send_message(chat_id=user_id, text="🚫 Tu acceso fue rechazado.")
+
+    async def ruta_programada_hoy(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user_id = update.effective_user.id
+        if self.auth_store.is_authorized(user_id):
+            date_value = "2025-01-02"
+            # date_value = date.today()
+            documento_query_service = DocumentoQueryService(db_connection=self.db_connection)  # Aquí deberías pasar la conexión real
+            data_analysis_service = DataAnalysisService()
+            
+            df = documento_query_service.get_programados_del_dia(date_value)
+            if df.empty:
+                await update.message.reply_text("📭 No hay rutas programadas para hoy.")
+                return
+            
+            path_rute_image = data_analysis_service.generar_reporte_imagen(
+                df=df, 
+                ruta_salida="reporte_programados_hoy.png",
+                date_programen=date_value
+            )
+            if path_rute_image:
+                with open(path_rute_image, "rb") as photo:
+                    await update.message.reply_photo(
+                        photo=InputFile(photo),
+                        caption=f"📋 Rutas programadas para hoy ({date_value})"
+                    )
+            else:
+                await update.message.reply_text("⚠️ No se pudo generar el reporte en imagen.")
+         
+        else:
+            await update.message.reply_text("🚫 No tienes permiso para usar este comando. Usa /start para solicitar acceso.")

@@ -127,10 +127,10 @@ class DataAnalysisService:
             for _, row in datos.iterrows():
                 tabla_datos.append(
                     [
-                        row["veh_placa"],
+                       f"{'✓' if row['rut_fec_ini'] else '◔'} {row['veh_placa']}",
                         row["chofer_nom_comp"],
                         row["doc_num_fac"],
-                        str(row["doc_raz_soc"]),
+                        f"{'✓✓' if row['rd_hora_sal'] else ''} {row['doc_raz_soc']}",
                         f"{row['doc_peso_tot']:.2f}",
                         f"{row['doc_cant_bult']:.2f}",
                     ]
