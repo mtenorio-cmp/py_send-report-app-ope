@@ -25,7 +25,7 @@ class MariaDBConnection(IDatabaseConnection):
             self.connection: Optional[pymysql.Connection] = None
             self.connection_config = {
                 "host": settings.DB_HOST or "127.0.0.1",
-                "port": settings.DB_PORT or 3306,
+                "port": settings.DB_PORT or 3307,
                 "database": settings.DB_NAME,
                 "user": settings.DB_USER,
                 "password": settings.DB_PASSWORD,

@@ -1,2 +1,2 @@
-from . import guia_model
-from . import requests
+# from . import guia_model
+# from . import requests
