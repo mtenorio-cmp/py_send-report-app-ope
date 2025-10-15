@@ -40,6 +40,9 @@ class GuiaService:
                             params["guia_fecha"] = doc.guia_fecha
                         if hasattr(doc, "guia_program_fecha") and doc.guia_program_fecha is not None:
                             set_clauses.append("FechaEntregaGR = %(guia_program_fecha)s")
+                            
+                        if hasattr(doc, "guia_program_fecha") and doc.guia_program_fecha is not None:
+                            set_clauses.append("FechaProgramadaGR = %(guia_program_fecha)s")
                             params["guia_program_fecha"] = doc.guia_program_fecha
                         if doc.guia_agencia is not None:
                             set_clauses.append("AgenciaTransporte = %(guia_agencia)s")

@@ -23,6 +23,7 @@ class MariaDBConnection(IDatabaseConnection):
         
         if not hasattr(self, "connection"):
             self.connection: Optional[pymysql.Connection] = None
+            logger.info(f"===={settings.DB_NAME}===={settings.DB_USER}====")
             self.connection_config = {
                 "host": settings.DB_HOST or "127.0.0.1",
                 "port": settings.DB_PORT or 3307,

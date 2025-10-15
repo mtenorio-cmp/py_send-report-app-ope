@@ -20,32 +20,32 @@ logger = logging.getLogger(__name__)
 db = MariaDBConnection()
 
 # Iniciar el bot de Telegram
-auth_store = TelegramAuthorizationSqlStore(db)
+# auth_store = TelegramAuthorizationSqlStore(db)
 
-telegram_service = TelegramBotService(
-    token=settings.TELEGRAM_BOT_TOKEN,
-    admin_id=int(settings.TELEGRAM_ADMIN_ID),
-    auth_store=auth_store,
-    db_connection=db
-)
+# telegram_service = TelegramBotService(
+#     token=settings.TELEGRAM_BOT_TOKEN,
+#     admin_id=int(settings.TELEGRAM_ADMIN_ID),
+#     auth_store=auth_store,
+#     db_connection=db
+# )
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # 🚀 Startup
-    bot_task = asyncio.create_task(telegram_service.run())
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # 🚀 Startup
+#     bot_task = asyncio.create_task(telegram_service.run())
     
-    logger.info("Bot de Telegram iniciado junto con la API")
-    yield
-    # 🛑 Shutdown
-    bot_task.cancel()
-    logger.warning("Bot detenido porque la API se cerró")
+#     logger.info("Bot de Telegram iniciado junto con la API")
+#     yield
+#     # 🛑 Shutdown
+#     bot_task.cancel()
+#     logger.warning("Bot detenido porque la API se cerró")
 
 # Inicialización de la aplicación
 app = FastAPI(
     title="API de Análisis de Datos",
     description="API para consultas y análisis de datos en MariaDB",
     version="1.0.0",
-    lifespan=lifespan
+    # lifespan=lifespan
 )
 
 # Middleware CORS
