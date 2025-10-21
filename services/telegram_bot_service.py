@@ -4,7 +4,6 @@ from telegram import BotCommand
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from interfaces.database_interface import IDatabaseConnection
 from interfaces.telegram_authorization_store import ITelegramAuthorizationStore
-from stores.telegram_authorization_sql_store import TelegramAuthorizationSqlStore
 from services.telegram_handlers import BotHandlers
 
 logger = logging.getLogger(__name__)
@@ -28,7 +27,7 @@ class TelegramBotService:
         app.add_handler(CommandHandler("ruta_programada_hoy", self.handlers.ruta_programada_hoy))
         app.add_handler(CallbackQueryHandler(self.handlers.button))
 
-        # 👉 Registrar lista de comandos para autocompletado
+        # Registrar lista de comandos para autocompletado
         commands = [
             BotCommand("start", "Inicia el bot y te registra"),
             BotCommand("ruta_programada_hoy", "Obtén la ruta programada para hoy"),
