@@ -59,7 +59,7 @@ class GuiaService:
                         """
                         cursor.execute(update_query, params)
                         if cursor.rowcount == 0:
-                            aviso = f"No se encontro documento para {doc.fact_serie}-{doc.fact_num}. No se actualizo ninguna fila."
+                            aviso = f"No se encontro FT {doc.fact_serie}-{doc.fact_num}, o no hay informacion que actualizar."
                             logger.warning(aviso)
                             avisos.append(aviso)
                         else:
