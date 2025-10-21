@@ -76,7 +76,7 @@ class DataAnalysisService:
             logger.error(f"Error calculando estadísticas: {e}")
             raise
 
-    def generar_reporte_imagen(
+    def despachados_del_dia_detallado(
         self,
         df: pd.DataFrame,
         date_programen: date,
@@ -213,5 +213,5 @@ class DataAnalysisService:
         ruta_completa = os.path.abspath(ruta_salida)
         plt.close()
         return ruta_completa
- 
- 
+    
+   

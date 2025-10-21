@@ -3,6 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from interfaces.database_interface import IDatabaseConnection
 from interfaces.telegram_authorization_store import ITelegramAuthorizationStore
+from interfaces.telegram_handlers_interfce import IBotHandlers
 from services.data_analysis_service import DataAnalysisService
 from services.documento_query_service import DocumentoQueryService
 from datetime import date
@@ -10,7 +11,7 @@ from telegram import InputFile
 
 logger = logging.getLogger(__name__)
 
-class BotHandlers:
+class BotHandlers(IBotHandlers):
     def __init__(self, 
                  admin_id: int, 
                  auth_store: ITelegramAuthorizationStore,
@@ -66,7 +67,7 @@ class BotHandlers:
                 await update.message.reply_text("📭 No hay rutas programadas para hoy.")
                 return
             
-            path_rute_image = data_analysis_service.generar_reporte_imagen(
+            path_rute_image = data_analysis_service.despachados_del_dia_detallado(
                 df=df, 
                 ruta_salida="reporte_programados_hoy.png",
                 date_programen=date_value
@@ -76,6 +77,37 @@ class BotHandlers:
                     await update.message.reply_photo(
                         photo=InputFile(photo),
                         caption=f"📋 Rutas programadas para hoy ({date_value})"
+                    )
+            else:
+                await update.message.reply_text("⚠️ No se pudo generar el reporte en imagen.")
+         
+        else:
+            await update.message.reply_text("🚫 No tienes permiso para usar este comando. Usa /start para solicitar acceso.")
+
+
+    async def ruta_despachados(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user_id = update.effective_user.id
+        if self.auth_store.is_authorized(user_id):
+            date_value = "2025-01-02"
+            # date_value = date.today()
+            documento_query_service = DocumentoQueryService(db_connection=self.db_connection)  # Aquí deberías pasar la conexión real
+            data_analysis_service = DataAnalysisService()
+            
+            df = documento_query_service.get_programados_del_dia(date_value)
+            if df.empty:
+                await update.message.reply_text("📭 No hay rutas despachadas para hoy.")
+                return
+            
+            path_rute_image = data_analysis_service.generar_reporte_imagen(
+                df=df, 
+                ruta_salida="reporte_despachados_hoy.png",
+                date_programen=date_value
+            )
+            if path_rute_image:
+                with open(path_rute_image, "rb") as photo:
+                    await update.message.reply_photo(
+                        photo=InputFile(photo),
+                        caption=f"📋 Rutas despachadas para hoy ({date_value})"
                     )
             else:
                 await update.message.reply_text("⚠️ No se pudo generar el reporte en imagen.")
