@@ -37,16 +37,14 @@ async def update_guia_many(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# @router.post("/report/programados_del_dia")
-# async def programados_hoy(
-#     request: ProgradosHoyRequest,
-# ):
-#     try:
-#         db = MariaDBConnection()
-#         db.connect()
+@router.get("/report/programados_del_dia")
+async def programados_hoy( ):
+    try:
+        db = MariaDBConnection()
+        db.connect()
 
-#         query_service = DocumentoQueryService(db)
-#         programados = query_service.get_programados_del_dia( request.date_programen)
+        query_service = GuiaService(db)
+        programados = query_service.get_guias_by_fecha_programada(filters={})
 #         if  programados.empty:
 #             return DataResponse(
 #                 success=True,
@@ -75,6 +73,6 @@ async def update_guia_many(
 #             rows_count=len(programados),
 #             message="Consulta realizada con éxito!",
 #         )
-#     except Exception as e:
-#         logger.error(f"Error en date-range: {e}")
+    except Exception as e:
+        logger.error(f"Error en date-range: {e}")
 #         raise HTTPException(status_code=500, detail=str(e))

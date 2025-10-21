@@ -5,6 +5,7 @@ from models.guia_model import GuiaUpdateRequest
 from typing import List
 
 from models.requests import DataResponse
+from services.documento_query_service import DocumentoQueryService
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ class GuiaService:
 
     def __init__(self, db_connection: IDatabaseConnection):
         self.db_connection = db_connection
+        self.doc_query_service: DocumentoQueryService = DocumentoQueryService(db_connection)
 
     def update_multiple_guias(self, requests: List[GuiaUpdateRequest]) -> DataResponse:
         """
@@ -93,3 +95,25 @@ class GuiaService:
             "message": message,
             "rows_count": updated_count,
         }
+        
+    def get_guias_by_fecha_programada(self, filters: dict = None) -> List[dict]:
+        """
+        Obtiene guías filtradas por fecha programada. Las condiciones pueden incluir    
+        por ejemplo: {"DATE(r.fechaProgramada)": "2025-10-20"} o
+        {"DATE(r.fechaProgramada)__eq": "2025-10-20"}.
+        """
+        # Preparar condiciones
+        motivos = ["VENTA", "VENTA TRANSITO", "TRASLADO E/ESTABLECIMIENTOS"]
+        base_where = ["r.id IS NOT NULL"]
+        conditions = {
+            "DATE(rd.horaLlegada)__eq": "2025-08-20", 
+            'd.Motivo__in': motivos,
+            "r.lugar_salida__eq": "PLANTA",
+        }
+        res = self.doc_query_service.query_documents(
+            base_conditions=base_where,
+            conditions=conditions
+        )
+        res.to_csv("debug_programados_del_dia.csv", index=False, sep='|' , encoding='utf-8')
+        print(len(res))
+        print(res.head())

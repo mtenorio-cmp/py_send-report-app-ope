@@ -9,3 +9,8 @@ ps aux | grep python
 
 elimina procesos por id
 kill 3012267
+
+para jecutar las pruebas test 
+
+ 
+o python -m pytest tests/ -v
