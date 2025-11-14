@@ -5,6 +5,8 @@ git clone --branch main --depth 1 https://github.com/mtenorio-cmp/py_send-report
 
 /www/server/python_manager/versions/3.12.0/bin/gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8082 main:app
 
+# source ./*_venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8082 --workers 1 --log-level info >> ./logs/uvicorn.log 2>&1
+
 ps aux | grep python
 
 elimina procesos por id
@@ -14,3 +16,10 @@ para jecutar las pruebas test
 
  
 o python -m pytest tests/ -v
+
+gunicorn main:app \
+    --workers 4 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 127.0.0.1:8082 \
+    --access-logfile /www/wwwroot/py_send-report-app-ope/logs/uvicorn.log \
+    --error-logfile /www/wwwroot/py_send-report-app-ope/logs/error.log

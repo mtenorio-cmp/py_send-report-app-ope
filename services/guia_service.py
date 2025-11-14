@@ -15,7 +15,9 @@ class GuiaService:
 
     def __init__(self, db_connection: IDatabaseConnection):
         self.db_connection = db_connection
-        self.doc_query_service: DocumentoQueryService = DocumentoQueryService(db_connection)
+        self.doc_query_service: DocumentoQueryService = DocumentoQueryService(
+            db_connection
+        )
 
     def update_multiple_guias(self, requests: List[GuiaUpdateRequest]) -> DataResponse:
         """
@@ -40,15 +42,43 @@ class GuiaService:
                         if hasattr(doc, "guia_fecha") and doc.guia_fecha is not None:
                             set_clauses.append("FechaEmisionGR = %(guia_fecha)s")
                             params["guia_fecha"] = doc.guia_fecha
-                        if hasattr(doc, "guia_program_fecha") and doc.guia_program_fecha is not None:
-                            set_clauses.append("FechaEntregaGR = %(guia_program_fecha)s")
-                            
-                        if hasattr(doc, "guia_program_fecha") and doc.guia_program_fecha is not None:
-                            set_clauses.append("FechaProgramadaGR = %(guia_program_fecha)s")
+                        if (
+                            hasattr(doc, "guia_program_fecha")
+                            and doc.guia_program_fecha is not None
+                        ):
+                            set_clauses.append(
+                                "FechaEntregaGR = %(guia_program_fecha)s"
+                            )
+
+                        if (
+                            hasattr(doc, "guia_program_fecha")
+                            and doc.guia_program_fecha is not None
+                        ):
+                            set_clauses.append(
+                                "FechaProgramadaGR = %(guia_program_fecha)s"
+                            )
                             params["guia_program_fecha"] = doc.guia_program_fecha
+                            
                         if doc.guia_agencia is not None:
                             set_clauses.append("AgenciaTransporte = %(guia_agencia)s")
                             params["guia_agencia"] = doc.guia_agencia
+                            
+                        if doc.guia_env_direcion is not None:
+                            set_clauses.append("DireccionEnvio = %(guia_env_direcion)s")
+                            params["guia_env_direcion"] = doc.guia_env_direcion
+                            
+                        if doc.guia_env_distrito is not None:
+                            set_clauses.append("DistritoEnvio = %(guia_env_distrito)s")
+                            params["guia_env_distrito"] = doc.guia_env_distrito
+                            
+                        if doc.guia_env_provincia is not None:
+                            set_clauses.append("ProvinciaEnvio = %(guia_env_provincia)s")
+                            params["guia_env_provincia"] = doc.guia_env_provincia
+                            
+                        if doc.guia_env_departamento is not None:
+                            set_clauses.append("DepartamentoEnvio = %(guia_env_departamento)s")
+                            params["guia_env_departamento"] = doc.guia_env_departamento
+                            
                         # Si no hay campos a actualizar, saltar
                         if not set_clauses:
                             continue
@@ -95,10 +125,10 @@ class GuiaService:
             "message": message,
             "rows_count": updated_count,
         }
-        
+
     def get_guias_by_fecha_programada(self, filters: dict = None) -> List[dict]:
         """
-        Obtiene guías filtradas por fecha programada. Las condiciones pueden incluir    
+        Obtiene guías filtradas por fecha programada. Las condiciones pueden incluir
         por ejemplo: {"DATE(r.fechaProgramada)": "2025-10-20"} o
         {"DATE(r.fechaProgramada)__eq": "2025-10-20"}.
         """
@@ -106,14 +136,15 @@ class GuiaService:
         motivos = ["VENTA", "VENTA TRANSITO", "TRASLADO E/ESTABLECIMIENTOS"]
         base_where = ["r.id IS NOT NULL"]
         conditions = {
-            "DATE(rd.horaLlegada)__eq": "2025-08-20", 
-            'd.Motivo__in': motivos,
+            "DATE(rd.horaLlegada)__eq": "2025-08-20",
+            "d.Motivo__in": motivos,
             "r.lugar_salida__eq": "PLANTA",
         }
         res = self.doc_query_service.query_documents(
-            base_conditions=base_where,
-            conditions=conditions
+            base_conditions=base_where, conditions=conditions
         )
-        res.to_csv("debug_programados_del_dia.csv", index=False, sep='|' , encoding='utf-8')
+        res.to_csv(
+            "debug_programados_del_dia.csv", index=False, sep="|", encoding="utf-8"
+        )
         print(len(res))
         print(res.head())

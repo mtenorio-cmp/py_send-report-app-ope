@@ -1,22 +1,20 @@
-from fastapi import APIRouter,  HTTPException
 import logging
 from models.requests import DateRangeRequest, DataResponse
 from services.documento_query_service import DocumentoQueryService
 from services.data_analysis_service import DataAnalysisService
 
 from database.mariadb_connection import MariaDBConnection
+from flask import Blueprint, jsonify, request
 
-router = APIRouter()
+bp = Blueprint("promedio_tiempo_despacho_x_cond_pago", __name__)
 logger = logging.getLogger(__name__)
 
 
-@router.post("/data/promedio_tiempo_despacho_x_cond_pago")
-async def get_promedio_tiempo_despacho_x_cond_pago(
-    request: DateRangeRequest,
-):
-    # _: bool = Depends(validate_request_auth),
-    # query_service: SafeQueryService = Depends(get_query_service),
-  
+@bp.route("/data/promedio_tiempo_despacho_x_cond_pago", methods=["POST"])
+def get_promedio_tiempo_despacho_x_cond_pago():
+
+    data = DateRangeRequest(**request.get_json())
+    # print(request)
 
     try:
         db = MariaDBConnection()
@@ -26,16 +24,17 @@ async def get_promedio_tiempo_despacho_x_cond_pago(
         data_analysis_service = DataAnalysisService()
 
         df_response = query_service.get_delivery_documents_by_date_range(
-            start_date=request.start_date,
-            end_date=request.end_date,
-            # motivos_list=motivos,
+            start_date=data.start_date,
+            end_date=data.end_date,
         )
-        
-        promedio_tiempo_despacho = data_analysis_service.get_promedio_tiempo_despacho(df_response)
+
+        promedio_tiempo_despacho = data_analysis_service.get_promedio_tiempo_despacho(
+            df_response
+        )
 
         # send_message_to_user("6172679210", "¡Consulta realizada con éxito!")
-        return DataResponse(
-            **{
+        response_data = DataResponse(
+            {
                 "success": True,
                 "data": {
                     "promedio_tiempo_despacho": promedio_tiempo_despacho,
@@ -43,7 +42,18 @@ async def get_promedio_tiempo_despacho_x_cond_pago(
                 "rows_count": len(df_response),
                 "message": "Consulta realizada con éxito!",
             }
+        ).to_json()
+        return (
+            jsonify(response_data),
+            200,
         )
+
     except Exception as e:
-        logger.error(f"Error en date-range: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        error_response = DataResponse(
+            success=False,
+            data=None,
+            rows_count=0,
+            message=str(e),
+        ).to_json()
+        logger.error(error_response)
+        return jsonify(error_response), 500

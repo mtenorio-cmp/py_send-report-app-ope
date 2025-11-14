@@ -11,4 +11,10 @@ class GuiaUpdateRequest(BaseModel):
     guia_fecha: date = Field(default=None, description="Fecha programada de la guía")
     guia_program_fecha: date = Field(default=None, description="Fecha programada de la guía")
     guia_agencia: Optional[str] = Field(default=None, description="Agencia de la guía")
+    guia_env_direcion: Optional[str] = Field(default=None, description="Direccion de envio de la guía")
+    guia_env_distrito: Optional[str] = Field(default=None, description="Distrito de envio de la guía")
+    guia_env_provincia: Optional[str] = Field(default=None, description="Provincia de envio de la guía")  
+    guia_env_departamento: Optional[str] = Field(default=None, description="Departamento de envio de la guía")  
+    
+    
     
