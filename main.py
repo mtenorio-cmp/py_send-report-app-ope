@@ -1,10 +1,7 @@
-# from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
 from flask import Flask, jsonify
 from flask_cors import CORS
 import logging
 
-# import uvicorn
 from database.mariadb_connection import MariaDBConnection
 from routes import guia_route, promedio_tiempo_despacho_x_cond_pago
 
@@ -55,3 +52,4 @@ if __name__ == "__main__":
         port=8082,
         debug=True,     
     )
+

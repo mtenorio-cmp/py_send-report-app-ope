@@ -1,4 +1,3 @@
-
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import date
@@ -33,7 +32,7 @@ class DataAnalysisService:
             "PA72;48",
         ]
         try:
-            data = data.dropna(subset=["rd_hora_sal"])
+            data = data.dropna(subset=["rd_hora_sal"]).copy()
             data["rd_hora_sal"] = pd.to_datetime(data["rd_hora_sal"])
             data["doc_fec_crea"] = pd.to_datetime(data["doc_fec_crea"])
             data["tiempo_despacho"] = data["rd_hora_sal"] - data["doc_fec_crea"]
@@ -43,7 +42,7 @@ class DataAnalysisService:
                 key, value = item.split(";")
                 condiciones_map[key] = int(value)
 
-            data["plazo_hrs"] = data["doc_con_pag"].map(condiciones_map)
+            data["plazo_hrs"] = data["doc_con_pag"].map(condiciones_map).fillna(0)
 
             grouped_data = (
                 data.groupby("doc_con_pag")
@@ -66,9 +65,16 @@ class DataAnalysisService:
             # Format the timedelta to the desired string format for promedio_tiempo_despacho
             grouped_data["promedio_tiempo_despacho"] = grouped_data[
                 "promedio_tiempo_despacho"
-            ].apply(
-                lambda x: f"{x.days:02d} Días {x.seconds // 3600:02d} Hrs {(x.seconds % 3600) // 60:02d} Mins"
-            )
+            ].fillna(pd.Timedelta(0))
+
+            def format_td(x):
+                if pd.isna(x):
+                    return "00 Días 00 Hrs 00 Mins"
+                return f"{x.days:02d} Días {x.seconds // 3600:02d} Hrs {(x.seconds % 3600) // 60:02d} Mins"
+
+            grouped_data["promedio_tiempo_despacho"] = grouped_data[
+                "promedio_tiempo_despacho"
+            ].apply(format_td)
 
             return [] if grouped_data.empty else grouped_data.to_dict("records")
 
@@ -127,7 +133,7 @@ class DataAnalysisService:
             for _, row in datos.iterrows():
                 tabla_datos.append(
                     [
-                       f"{'✓' if row['rut_fec_ini'] else '◔'} {row['veh_placa']}",
+                        f"{'✓' if row['rut_fec_ini'] else '◔'} {row['veh_placa']}",
                         row["chofer_nom_comp"],
                         row["doc_num_fac"],
                         f"{'✓✓' if row['rd_hora_sal'] else ''} {row['doc_raz_soc']}",
@@ -213,5 +219,3 @@ class DataAnalysisService:
         ruta_completa = os.path.abspath(ruta_salida)
         plt.close()
         return ruta_completa
-    
-   

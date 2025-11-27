@@ -57,5 +57,5 @@ class TestDocumentoQueryService:
             "doc_mot__in": ["VENTA"],
             "v.placa__like": "%ABC%"
         }
-        result = service.query_documents(conditions)
+        result = service.query_documents(conditions=conditions)
         assert isinstance(result, pd.DataFrame)

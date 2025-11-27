@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 @bp.route("/data/promedio_tiempo_despacho_x_cond_pago", methods=["POST"])
 def get_promedio_tiempo_despacho_x_cond_pago():
-
     data = DateRangeRequest(**request.get_json())
     # print(request)
 
@@ -27,6 +26,16 @@ def get_promedio_tiempo_despacho_x_cond_pago():
             start_date=data.start_date,
             end_date=data.end_date,
         )
+        # si df_response es vacio, retornar error
+        if df_response.empty:
+            return jsonify(
+                DataResponse(
+                    success=False,
+                    data=[],
+                    rows_count=0,
+                    message="No se encontraron documentos",
+                ).to_json()
+            ), 404
 
         promedio_tiempo_despacho = data_analysis_service.get_promedio_tiempo_despacho(
             df_response
@@ -34,14 +43,12 @@ def get_promedio_tiempo_despacho_x_cond_pago():
 
         # send_message_to_user("6172679210", "¡Consulta realizada con éxito!")
         response_data = DataResponse(
-            {
-                "success": True,
-                "data": {
-                    "promedio_tiempo_despacho": promedio_tiempo_despacho,
-                },
-                "rows_count": len(df_response),
-                "message": "Consulta realizada con éxito!",
-            }
+            success=True,
+            data={
+                "promedio_tiempo_despacho": promedio_tiempo_despacho,
+            },
+            rows_count=len(df_response),
+            message="Consulta realizada con éxito!",
         ).to_json()
         return (
             jsonify(response_data),

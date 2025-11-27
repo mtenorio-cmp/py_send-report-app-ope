@@ -5,7 +5,7 @@ git clone --branch main --depth 1 https://github.com/mtenorio-cmp/py_send-report
 
 /www/server/python_manager/versions/3.12.0/bin/gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8082 main:app
 
-# source ./*_venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8082 --workers 1 --log-level info >> ./logs/uvicorn.log 2>&1
+# gunicorn -c gunicorn.conf.py main:app
 
 ps aux | grep python
 

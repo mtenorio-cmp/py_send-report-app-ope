@@ -85,7 +85,8 @@ class MariaDBConnection(IDatabaseConnection):
             raise
 
     def execute_query_dataframe(
-        self, query: str, params: Optional[List[Any]] = None
+        self, query: str, 
+        params: Optional[List[Any]] = None,
     ) -> pd.DataFrame:
         """Ejecuta query y retorna resultados como DataFrame de pandas"""
         try:
@@ -95,7 +96,10 @@ class MariaDBConnection(IDatabaseConnection):
                         "No se pudo establecer conexión a la base de datos"
                     )
 
-            df = pd.read_sql(query, self.connection, params=params or ())
+            if params:
+                df = pd.read_sql(query, self.connection, params=params)
+            else:
+                df = pd.read_sql(query, self.connection)
             logger.info(f"✅ DataFrame creado exitosamente. Shape: {df.shape}")
             return df
         except Exception as e:

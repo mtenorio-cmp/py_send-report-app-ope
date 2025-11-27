@@ -156,12 +156,6 @@ class DocumentoQueryService:
 
         # Preparar condiciones
         conditions = conditions or {}
-
-        # NOTA: no convertir date_programs aquí — se usa tal cual desde conditions
-
-        
-
-
        
         where_clauses, extra_params = self._build_where(base_conditions, conditions)
 
@@ -173,6 +167,8 @@ class DocumentoQueryService:
         query = query_pre_where + 'WHERE\n                ' + all_where + '\n'
 
         logger.info(f"==>Query documentos con condiciones: {list(conditions.keys())}")
+        # logger.info(f"==>Query documentos con condiciones: {query}")
+        logger.info(f"==>Params: {extra_params}")
         return self.db_connection.execute_query_dataframe(query, extra_params)
 
 
@@ -209,7 +205,7 @@ class DocumentoQueryService:
         logger.info(
             f"==>Obteniendo documentos de entrega del {start_date} al {end_date}"
         )
-        return self.query_documents(conditions)
+        return self.query_documents(conditions=conditions)
 
     # Compatibilidad: wrapper con el nombre antiguo
     def get_programados_del_dia(self, date_programs: date = None, filters: dict = None) -> pd.DataFrame:
@@ -221,4 +217,4 @@ class DocumentoQueryService:
         {"DATE(r.fechaProgramada)__eq": "2025-10-20"}.
         """
         conditions = {"DATE(r.fechaProgramada)__eq": "2025-10-20"}
-        return self.query_documents(conditions)
+        return self.query_documents(conditions=conditions)
