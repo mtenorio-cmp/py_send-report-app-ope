@@ -167,7 +167,6 @@ class DocumentoQueryService:
         query = query_pre_where + 'WHERE\n                ' + all_where + '\n'
 
         logger.info(f"==>Query documentos con condiciones: {list(conditions.keys())}")
-        # logger.info(f"==>Query documentos con condiciones: {query}")
         logger.info(f"==>Params: {extra_params}")
         return self.db_connection.execute_query_dataframe(query, extra_params)
 
@@ -216,5 +215,6 @@ class DocumentoQueryService:
         por ejemplo: {"DATE(r.fechaProgramada)": "2025-10-20"} o
         {"DATE(r.fechaProgramada)__eq": "2025-10-20"}.
         """
-        conditions = {"DATE(r.fechaProgramada)__eq": "2025-10-20"}
+        conditions = {"DATE(r.fechaProgramada)__eq": date_programs}
+        logger.info(f"==>Obteniendo documentos programados del {conditions}")
         return self.query_documents(conditions=conditions)

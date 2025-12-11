@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from datetime import date
 import logging
 import os
+from models.tiempo_despacho_resumen import TiempoDespachoResumen
 
 logger = logging.getLogger(__name__)
 
@@ -10,26 +11,26 @@ logger = logging.getLogger(__name__)
 class DataAnalysisService:
     """Servicio para análisis de datos usando pandas y numpy"""
 
-    def get_promedio_tiempo_despacho(self, data: pd.DataFrame) -> list[dict]:
+    def get_promedio_tiempo_despacho(self, data: pd.DataFrame) -> pd.DataFrame:
         """Obtiene estadísticas resumidas del DataFrame"""
 
         condicones_pago = [
             "Contado contra entrega;24",
             "CERC;24",
+            "PADEL;24",
             "FACT 90 - 1;24",
             "FACT 90 - 2;24",
+            "LETRAS 365 - 1;24",
+            "LETRAS 365 - 3;24",
+            "Pago Adelantado;24",
+            "ACUADEL;24",
             "FACT 90 - 3;48",
             "FACT 90 - 4;48",
             "FACT 90 - 5;48",
-            "LETRAS 365 - 1;24",
-            "LETRAS 365 - 3;24",
             "LETRAS 365 - 5;48",
-            "PA5050;72",
-            "PADEL;24",
-            "ACUADEL;24",
-            "PADEL 96;72",
-            "Pago Adelantado;24",
             "PA72;48",
+            "PA5050;72",
+            "PADEL 96;72",
         ]
         try:
             data = data.dropna(subset=["rd_hora_sal"]).copy()
@@ -42,16 +43,24 @@ class DataAnalysisService:
                 key, value = item.split(";")
                 condiciones_map[key] = int(value)
 
-            data["plazo_hrs"] = data["doc_con_pag"].map(condiciones_map).fillna(0)
+            data["condicion_categoria"] = data["doc_con_pag"].apply(
+                lambda x: x if x in condiciones_map else "Otros"
+            )
+
+            # Asignar horas según condición, default para Otros = 0
+            data["plazo_hrs"] = (
+                data["condicion_categoria"].map(condiciones_map).fillna(0)
+            )
 
             grouped_data = (
-                data.groupby("doc_con_pag")
+                data.groupby("condicion_categoria")
                 .agg(
                     cantidad_registros=("doc_con_pag", "size"),
                     promedio_plazo_hrs=("plazo_hrs", "mean"),
                     promedio_tiempo_despacho=("tiempo_despacho", "mean"),
                 )
                 .reset_index()
+                .rename(columns={"condicion_categoria": "doc_con_pag"})
             )
 
             total_registros = data.shape[0]
@@ -75,12 +84,55 @@ class DataAnalysisService:
             grouped_data["promedio_tiempo_despacho"] = grouped_data[
                 "promedio_tiempo_despacho"
             ].apply(format_td)
-
-            return [] if grouped_data.empty else grouped_data.to_dict("records")
+            return grouped_data
 
         except Exception as e:
             logger.error(f"Error calculando estadísticas: {e}")
             raise
+
+    def find_exceptions(self, df: pd.DataFrame) -> pd.DataFrame:
+        # filtrar de df solo los que tiene valor en "doc_excep"
+        # luego agrupar por doc_excep y contar cuantas veces se repite
+        df_filter = df[df["doc_excep"].notna() & (df["doc_excep"] != "")]
+        return (
+            df_filter.groupby("doc_excep")
+            .size()
+            .reset_index(name="count")
+            .sort_values(by="count", ascending=False)
+            .reset_index(drop=True)
+        )
+
+    def find_programados_del_dia(
+        self, df: pd.DataFrame, date_programen: date
+    ) -> pd.DataFrame:
+        # Filtrar fecha válida
+        df_filter = df[
+            df["doc_fec_ent_gr"].notna() & (df["doc_fec_ent_gr"] == date_programen)
+        ].copy()
+        # si tiene valor en "doc_ag_trans" asignar "Agencia"
+        # Determina Agencia o Lima según doc_ag_trans
+        df_filter["type_doc"] = df_filter["doc_ag_trans"].apply(
+            lambda x: "Agencia" if pd.notna(x) and str(x).strip() != "" else "Lima"
+        )
+
+        # Solo procesar los que inicialmente fueron "Lima"
+        df_lima = df_filter[df_filter["type_doc"] == "Lima"].copy()
+
+        # Clasificar según doc_mot
+        def classify(row):
+            mot = str(row["doc_mot"]).strip().lower()
+            if mot == "recojo en planta":
+                return "Planta"
+            elif mot == "venta":
+                return "Lima"
+            elif mot == "traslado int. almacen":
+                return "Traslado"
+            else:
+                return "Otros"
+
+        df_lima["type_doc"] = df_lima.apply(classify, axis=1)
+        print(df_lima.to_dict(orient="records"))
+        return df_lima
 
     def despachados_del_dia_detallado(
         self,

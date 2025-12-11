@@ -45,7 +45,7 @@ def get_promedio_tiempo_despacho_x_cond_pago():
         response_data = DataResponse(
             success=True,
             data={
-                "promedio_tiempo_despacho": promedio_tiempo_despacho,
+                "promedio_tiempo_despacho": promedio_tiempo_despacho.to_dict(orient="records"),
             },
             rows_count=len(df_response),
             message="Consulta realizada con éxito!",
